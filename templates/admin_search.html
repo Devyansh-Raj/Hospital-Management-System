@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Search Doctors & Patients - Admin Dashboard{% endblock %}
+
+{% block nav_items %}
+    <li class="nav-item">
+        <a class="nav-link" href="/admin">Dashboard</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/appointments">All Appointments</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/search">Search</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">
+    <i class="fas fa-search me-2"></i>Search Doctors & Patients
+</h1>
+
+<p class="text-muted mb-4">Find and manage doctors and patients in the system</p>
+
+<!-- Search Form -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-filter me-2"></i>Search & Filter
+        </h5>
+    </div>
+    <div class="card-body p-4">
+        <form method="post">
+            <div class="row">
+                <div class="col-md-9 mb-3 mb-md-0">
+                    <label for="search_query" class="form-label">Search Term</label>
+                    <input 
+                        type="text" 
+                        class="form-control form-control-lg" 
+                        id="search_query"
+                        name="search_query" 
+                        placeholder="Enter name, email, specialization, or phone..."
+                        value="{{ search_query }}"
+                    >
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <label for="search_type" class="form-label">Search In</label>
+                    <select class="form-select form-select-lg" id="search_type" name="search_type">
+                        <option value="all" {% if search_type == 'all' %}selected{% endif %}>All</option>
+                        <option value="doctor" {% if search_type == 'doctor' %}selected{% endif %}>Doctors Only</option>
+                        <option value="patient" {% if search_type == 'patient' %}selected{% endif %}>Patients Only</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg mt-3">
+                <i class="fas fa-search me-2"></i>Search
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Doctors Results -->
+{% if doctors %}
+    <div class="mb-4">
+        <h2 class="section-title">
+            <i class="fas fa-user-md me-2"></i>Doctors ({{ doctors|length }})
+        </h2>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Doctor Name</th>
+                        <th>Specialization</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doctor in doctors %}
+                        <tr>
+                            <td>
+                                <strong>Dr. {{ doctor.name }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary">{{ doctor.specialization }}</span>
+                            </td>
+                            <td>{{ doctor.email }}</td>
+                            <td>
+                                {% if doctor.is_active %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check-circle me-1"></i>Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-danger">
+                                        <i class="fas fa-times-circle me-1"></i>Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="/admin/doctor/edit/{{ doctor.id }}" class="btn btn-sm btn-warning" title="Edit Doctor">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <a href="/doctor/appointments/{{ doctor.id }}" class="btn btn-sm btn-info" title="View Appointments">
+                                        <i class="fas fa-calendar"></i> Appointments
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Patients Results -->
+{% if patients %}
+    <div class="mb-4">
+        <h2 class="section-title">
+            <i class="fas fa-users me-2"></i>Patients ({{ patients|length }})
+        </h2>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>User ID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                        <tr>
+                            <td>
+                                <strong>{{ patient.username }}</strong>
+                            </td>
+                            <td>{{ patient.email }}</td>
+                            <td>
+                                {% if patient.phone %}
+                                    {{ patient.phone }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge badge-secondary">{{ patient.id }}</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="/admin/patient/edit/{{ patient.id }}" class="btn btn-sm btn-warning" title="Edit Patient">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    {% if patient.type == 'blacklisted' %}
+                                        <form method="post" action="/admin/patient/reactivate/{{ patient.id }}" style="display:inline">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Reactivate Patient">
+                                                <i class="fas fa-check"></i> Reactivate
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="/admin/patient/deactivate/{{ patient.id }}" style="display:inline">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Deactivate Patient">
+                                                <i class="fas fa-user-slash"></i> Deactivate
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
+
+<!-- No Results Message -->
+{% if search_query and not doctors and not patients %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>No Results</strong><br>
+        No doctors or patients found for "<strong>{{ search_query }}</strong>".
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+{% endif %}
+
+<!-- Initial State Message -->
+{% if not search_query %}
+    <div class="alert alert-secondary">
+        <i class="fas fa-search me-2"></i>
+        <strong>Start Searching</strong><br>
+        Enter a search term above to find doctors or patients in the system.
+    </div>
+{% endif %}
+
+{% endblock %}

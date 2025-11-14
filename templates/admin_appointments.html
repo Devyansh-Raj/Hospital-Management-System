@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}All Appointments - Admin Dashboard{% endblock %}
+
+{% block nav_items %}
+    <li class="nav-item">
+        <a class="nav-link" href="/admin">Dashboard</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/appointments">All Appointments</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/search">Search</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">
+    <i class="fas fa-calendar-alt me-2"></i>All Appointments
+</h1>
+
+<p class="text-muted mb-4">View and manage all system appointments</p>
+
+{% if appointments %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Date & Time</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments %}
+                <tr>
+                    <td>
+                        <span class="badge badge-secondary">#{{ appt.id }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ appt.user.username }}</strong>
+                    </td>
+                    <td>
+                        Dr. {{ appt.doctor.name }}
+                    </td>
+                    <td>
+                        {{ appt.appointment_date.strftime('%b %d, %Y %I:%M %p') }}
+                    </td>
+                    <td>
+                        {{ appt.reason }}
+                    </td>
+                    <td>
+                        {% if appt.status == 'scheduled' %}
+                            <span class="badge badge-warning">Scheduled</span>
+                        {% elif appt.status == 'completed' %}
+                            <span class="badge badge-success">Completed</span>
+                        {% else %}
+                            <span class="badge badge-danger">Cancelled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/prescription/view/{{ appt.id }}" class="btn btn-sm btn-info" title="View Prescription">
+                                <i class="fas fa-eye"></i> Rx
+                            </a>
+                            {% if appt.status == 'scheduled' %}
+                                <form method="post" action="/admin/appointments/cancel/{{ appt.id }}" style="display:inline">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Cancel Appointment" onclick="return confirm('Cancel this appointment?')">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">
+        <small class="text-muted">
+            <i class="fas fa-info-circle me-2"></i>Total Appointments: {{ appointments|length }}
+        </small>
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-calendar"></i>
+        <h5>No appointments found</h5>
+        <p>No appointments have been created yet</p>
+    </div>
+{% endif %}
+
+{% endblock %}

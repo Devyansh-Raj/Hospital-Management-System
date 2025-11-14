@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Add Doctor - Admin Dashboard{% endblock %}
+{% block title %}Edit Doctor - Admin Dashboard{% endblock %}
 
 {% block nav_items %}
     <li class="nav-item">
@@ -21,30 +21,30 @@
 <div class="row">
     <div class="col-lg-6 mx-auto">
         <h1 class="page-title">
-            <i class="fas fa-user-md me-2"></i>Register New Doctor
+            <i class="fas fa-edit me-2"></i>Edit Doctor Profile
         </h1>
 
-        <p class="text-muted mb-4">Add a new doctor to the system</p>
+        <p class="text-muted mb-4">Update doctor information</p>
 
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-warning text-dark">
                 <h5 class="mb-0">
-                    <i class="fas fa-plus-circle me-2"></i>Doctor Information
+                    <i class="fas fa-user-md me-2"></i>Dr. {{ doctor.name }}
                 </h5>
             </div>
             <div class="card-body p-4">
-                <form action="/doctors" method="post">
+                <form method="post">
                     <!-- Doctor Name -->
                     <div class="mb-4">
                         <label for="name" class="form-label">
-                            <i class="fas fa-user me-2"></i><strong>Full Name</strong>
+                            <i class="fas fa-user me-2"></i><strong>Doctor Name</strong>
                         </label>
                         <input 
                             type="text" 
                             class="form-control form-control-lg" 
                             id="name" 
                             name="name" 
-                            placeholder="Dr. John Doe"
+                            value="{{ doctor.name }}" 
                             required
                         >
                     </div>
@@ -52,13 +52,14 @@
                     <!-- Specialization -->
                     <div class="mb-4">
                         <label for="specialization" class="form-label">
-                            <i class="fas fa-stethoscope me-2"></i><strong>Medical Specialization</strong>
+                            <i class="fas fa-stethoscope me-2"></i><strong>Specialization</strong>
                         </label>
                         <input 
                             type="text" 
                             class="form-control form-control-lg" 
                             id="specialization" 
                             name="specialization" 
+                            value="{{ doctor.specialization }}" 
                             placeholder="e.g., Cardiology, Orthopedics"
                             required
                         >
@@ -74,31 +75,30 @@
                             class="form-control form-control-lg" 
                             id="email" 
                             name="email" 
-                            placeholder="doctor@hospital.com"
+                            value="{{ doctor.email }}" 
                             required
                         >
                     </div>
 
-                    <!-- Password -->
+                    <!-- Status -->
                     <div class="mb-4">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock me-2"></i><strong>Password</strong>
+                        <label for="is_active" class="form-label">
+                            <i class="fas fa-toggle-on me-2"></i><strong>Account Status</strong>
                         </label>
-                        <input 
-                            type="password" 
-                            class="form-control form-control-lg" 
-                            id="password" 
-                            name="password" 
-                            placeholder="Create a secure password"
-                            required
-                        >
-                        <small class="text-muted">Minimum 6 characters recommended</small>
+                        <select class="form-select form-select-lg" id="is_active" name="is_active">
+                            <option value="1" {% if doctor.is_active %}selected{% endif %}>
+                                <i class="fas fa-check-circle"></i> Active
+                            </option>
+                            <option value="0" {% if not doctor.is_active %}selected{% endif %}>
+                                <i class="fas fa-times-circle"></i> Inactive
+                            </option>
+                        </select>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-success btn-lg">
-                            <i class="fas fa-user-plus me-2"></i>Register Doctor
+                            <i class="fas fa-save me-2"></i>Save Changes
                         </button>
                         <a href="/admin" class="btn btn-secondary btn-lg">
                             <i class="fas fa-times me-2"></i>Cancel

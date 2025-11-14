@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Dashboard - Hospital Management{% endblock %}
+
+{% block nav_items %}
+    <li class="nav-item">
+        <a class="nav-link" href="/home/{{ this_user.id }}">Dashboard</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/history/{{ this_user.id }}">My Appointments</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/search-doctors">Find Doctor</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/profile/{{ this_user.id }}">My Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">
+    <i class="fas fa-user-circle me-2"></i>Welcome, {{ this_user.username }}
+</h1>
+
+<p class="text-muted mb-4">Book an appointment with our experienced doctors</p>
+
+<!-- Available Doctors -->
+<h2 class="section-title">
+    <i class="fas fa-stethoscope me-2"></i>Available Doctors
+</h2>
+
+<div class="row">
+    {% if all_doctors %}
+        {% for d in all_doctors %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">Dr. {{ d.name }}</h5>
+                                <small class="text-muted">{{ d.specialization }}</small>
+                            </div>
+                        </div>
+                        <p class="card-text"><strong>Email:</strong> {{ d.email }}</p>
+                        <p class="card-text"><strong>Available Slots:</strong> <span class="badge badge-success">{{ d.slots|length }}</span></p>
+                        <a href="/appointment/{{ this_user.id }}?doctor_id={{ d.id }}" class="btn btn-primary w-100 btn-icon">
+                            <i class="fas fa-calendar-plus"></i> Book Appointment
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h5>No doctors available</h5>
+                <p>Please try again later</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}View Prescription - Hospital Management{% endblock %}
+
+{% block nav_items %}
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/history/{{ appointment.user_id }}">My History</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/profile/{{ appointment.user_id }}">My Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="page-title">
+            <i class="fas fa-prescription-bottle me-2"></i>Prescription Details
+        </h1>
+
+        <!-- Appointment Details Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-check me-2"></i>Appointment Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1">
+                            <strong><i class="fas fa-user me-2"></i>Patient:</strong>
+                        </p>
+                        <p class="ms-4">{{ appointment.user.username }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1">
+                            <strong><i class="fas fa-user-md me-2"></i>Doctor:</strong>
+                        </p>
+                        <p class="ms-4">Dr. {{ appointment.doctor.name }}</p>
+                    </div>
+                    <div class="col-md-6 mb-0">
+                        <p class="mb-1">
+                            <strong><i class="fas fa-calendar me-2"></i>Date & Time:</strong>
+                        </p>
+                        <p class="ms-4">{{ appointment.appointment_date.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    </div>
+                    <div class="col-md-6 mb-0">
+                        <p class="mb-1">
+                            <strong><i class="fas fa-stethoscope me-2"></i>Reason:</strong>
+                        </p>
+                        <p class="ms-4">{{ appointment.reason }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if prescription %}
+            <!-- Treatment Notes -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-notes-medical me-2"></i>Treatment Notes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ prescription.treatment_notes }}</p>
+                </div>
+            </div>
+
+            <!-- Prescription (Medicines) -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-prescription-bottle-alt me-2"></i>Medicines & Dosage
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-line;">{{ prescription.prescription_text }}</p>
+                </div>
+            </div>
+
+            <!-- Prescription Image (if available) -->
+            {% if prescription.image_path %}
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-image me-2"></i>Prescription Document
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <img 
+                            src="/{{ prescription.image_path }}" 
+                            alt="Prescription" 
+                            class="img-fluid rounded border"
+                            style="max-width: 100%; height: auto;"
+                        >
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Metadata -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-2"></i>Prescription created on {{ prescription.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                    </small>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>No Prescription Available</strong><br>
+                No prescription has been added for this appointment yet.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="mb-4">
+            <a href="javascript:history.back()" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>Go Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-body p {
+        line-height: 1.6;
+        color: var(--text-primary);
+    }
+</style>
+{% endblock %}

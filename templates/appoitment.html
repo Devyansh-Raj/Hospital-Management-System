@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Book Appointment - Hospital Management{% endblock %}
+
+{% block nav_items %}
+    <li class="nav-item">
+        <a class="nav-link" href="/home/{{ this_user.id }}">Dashboard</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/history/{{ this_user.id }}">My Appointments</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/search-doctors">Find Doctor</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/profile/{{ this_user.id }}">My Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="page-title">
+            <i class="fas fa-calendar-plus me-2"></i>Book an Appointment
+        </h1>
+
+        <p class="text-muted mb-4">Schedule a consultation with our medical professionals</p>
+
+        {% if error %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body p-4">
+                <form action="/appointment/{{ this_user.id }}" method="post">
+                    <!-- Doctor Selection -->
+                    {% if selected_doctor %}
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-user-md me-2"></i><strong>Selected Doctor</strong>
+                            </label>
+                            <div class="card border-primary bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-1">Dr. {{ selected_doctor.name }}</h5>
+                                    <p class="card-text mb-0">
+                                        <span class="badge badge-primary">{{ selected_doctor.specialization }}</span>
+                                    </p>
+                                    <small class="text-muted">{{ selected_doctor.email }}</small>
+                                </div>
+                            </div>
+                            <input type="hidden" name="doctor_id" value="{{ selected_doctor.id }}">
+                        </div>
+                    {% else %}
+                        <div class="mb-4">
+                            <label for="doctor_id" class="form-label">
+                                <i class="fas fa-user-md me-2"></i><strong>Select a Doctor</strong>
+                            </label>
+                            <select class="form-select form-select-lg" id="doctor_id" name="doctor_id" required>
+                                <option value="">-- Choose a doctor --</option>
+                                {% for d in all_doctors %}
+                                    <option value="{{ d.id }}">Dr. {{ d.name }} — {{ d.specialization }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+
+                    <!-- Date and Slot Selection -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="date" class="form-label">
+                                <i class="fas fa-calendar me-2"></i><strong>Appointment Date</strong>
+                            </label>
+                            <input 
+                                type="date" 
+                                class="form-control form-control-lg" 
+                                id="date" 
+                                name="date" 
+                                required
+                            >
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="slot_id" class="form-label">
+                                <i class="fas fa-clock me-2"></i><strong>Time Slot</strong>
+                            </label>
+                            <select 
+                                class="form-select form-select-lg" 
+                                id="slot_id" 
+                                name="slot_id" 
+                                required
+                            >
+                                <option value="">-- Select a time slot --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Reason -->
+                    <div class="mb-4">
+                        <label for="reason" class="form-label">
+                            <i class="fas fa-notes-medical me-2"></i><strong>Describe Your Issue</strong>
+                        </label>
+                        <textarea 
+                            class="form-control" 
+                            id="reason" 
+                            name="reason" 
+                            rows="3" 
+                            placeholder="Please describe your symptoms or reason for visit..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-check-circle me-2"></i>Book Appointment
+                        </button>
+                        <a href="/home/{{ this_user.id }}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // mapping provided by server: doctor_slots is a dict: doctor_id -> list of {id,label}
+    const doctorSlots = {{ doctor_slots | tojson }};
+
+    function getSelectedDoctorId() {
+        const sel = document.getElementById('doctor_id');
+        if (sel && sel.value) return sel.value;
+        const hidden = document.querySelector('input[name="doctor_id"]');
+        return hidden ? hidden.value : null;
+    }
+
+    const slotSelect = document.getElementById('slot_id');
+    const dateInput = document.getElementById('date');
+    const doctorSelect = document.getElementById('doctor_id');
+
+    async function populateSlots() {
+        const docId = getSelectedDoctorId();
+        const dateVal = dateInput.value; // YYYY-MM-DD
+        slotSelect.innerHTML = '<option value="">-- Select a time slot --</option>';
+        if (!docId) return;
+
+        // If date not selected, show all slots (not checking availability)
+        if (!dateVal) {
+            const slots = doctorSlots[docId] || [];
+            slots.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.label;
+                slotSelect.appendChild(opt);
+            });
+            return;
+        }
+
+        // fetch availability for this doctor and date
+        try {
+            const resp = await fetch(`/slots/${docId}/${dateVal}`);
+            if (!resp.ok) throw new Error('Network response was not ok');
+            const data = await resp.json();
+            data.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.label + (s.available ? '' : ' (booked)');
+                if (!s.available) opt.disabled = true;
+                slotSelect.appendChild(opt);
+            });
+        } catch (e) {
+            // fallback to server-provided list if fetch fails
+            const slots = doctorSlots[docId] || [];
+            slots.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.label;
+                slotSelect.appendChild(opt);
+            });
+        }
+    }
+
+    if (doctorSelect) {
+        doctorSelect.addEventListener('change', populateSlots);
+    }
+    dateInput.addEventListener('change', populateSlots);
+    window.addEventListener('DOMContentLoaded', function(){
+        populateSlots();
+    });
+</script>
+{% endblock %}
+
+

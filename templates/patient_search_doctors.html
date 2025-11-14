@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Search Doctors by Specialization{% endblock %}
+
+{% block nav_items %}
+    <li class="nav-item">
+        <a class="nav-link" href="/home/{{ session.get('user_id', 1) }}">Dashboard</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/history/{{ session.get('user_id', 1) }}">My Appointments</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/search-doctors">Find Doctor</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/patient/profile/{{ session.get('user_id', 1) }}">My Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">
+    <i class="fas fa-search me-2"></i>Find a Doctor
+</h1>
+
+<p class="text-muted mb-4">Search for doctors by their specialization</p>
+
+<!-- Search Form -->
+<div class="row">
+    <div class="col-lg-8 mx-auto mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>Search by Specialization
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    <div class="row">
+                        <div class="col-md-9 mb-2 mb-md-0">
+                            <label for="specialization" class="form-label">Medical Specialization</label>
+                            {% if specializations and not specialization %}
+                                <select 
+                                    class="form-select form-select-lg" 
+                                    id="specialization"
+                                    name="specialization" 
+                                    required
+                                >
+                                    <option value="">Select a specialization...</option>
+                                    {% for spec in specializations %}
+                                        <option value="{{ spec[0] }}">{{ spec[0] }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <input 
+                                    type="text" 
+                                    class="form-control form-control-lg" 
+                                    id="specialization"
+                                    name="specialization" 
+                                    placeholder="e.g., Cardiology, Orthopedics, Dermatology..."
+                                    value="{{ specialization }}"
+                                    required
+                                >
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Doctors Results -->
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        {% if doctors %}
+            <h2 class="section-title mb-4">
+                <i class="fas fa-stethoscope me-2"></i>Results for "{{ specialization }}"
+                <span class="badge badge-primary ms-2">{{ doctors|length }}</span>
+            </h2>
+
+            {% for doctor in doctors %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title mb-1">Dr. {{ doctor.name }}</h5>
+                                <p class="card-text text-muted mb-0">{{ doctor.specialization }}</p>
+                            </div>
+                            <span class="badge badge-success">
+                                <i class="fas fa-check-circle me-1"></i>{{ doctor.slots|length }} Slots
+                            </span>
+                        </div>
+
+                        <div class="row text-sm">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong><i class="fas fa-envelope me-2"></i>Email:</strong><br>
+                                    <span class="ms-4">{{ doctor.email }}</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-0">
+                                    <strong><i class="fas fa-calendar me-2"></i>Available Slots:</strong><br>
+                                    <span class="ms-4">{{ doctor.slots|length }}</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <a href="/appointment/{{ session.get('user_id', 1) }}?doctor_id={{ doctor.id }}" class="btn btn-primary">
+                                <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+        {% elif specialization %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>No Results</strong><br>
+                No doctors found with specialization "<strong>{{ specialization }}</strong>". Try a different specialization.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+        {% else %}
+            <div class="alert alert-secondary">
+                <i class="fas fa-search me-2"></i>
+                <strong>Start Searching</strong><br>
+                Enter a medical specialization above to find available doctors (e.g., Cardiology, Orthopedics, Dermatology, etc.).
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

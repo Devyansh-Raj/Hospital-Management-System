@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Add Prescription - Hospital Management{% endblock %}
+
+{% block nav_items %}
+    <li class="nav-item">
+        <a class="nav-link" href="/doctor/appointments/{{ appointment.doctor_id }}">My Appointments</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/doctor/patients/{{ appointment.doctor_id }}">My Patients</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/doctor/availability/{{ appointment.doctor_id }}">Manage Availability</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="page-title">
+            <i class="fas fa-prescription-bottle me-2"></i>Add Prescription
+        </h1>
+
+        <p class="text-muted mb-4">Enter treatment notes and medicines for this appointment</p>
+
+        <!-- Appointment Details Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-check me-2"></i>Appointment Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1">
+                            <strong><i class="fas fa-user me-2"></i>Patient:</strong>
+                        </p>
+                        <p class="ms-4">{{ appointment.user.username }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1">
+                            <strong><i class="fas fa-calendar me-2"></i>Date & Time:</strong>
+                        </p>
+                        <p class="ms-4">{{ appointment.appointment_date.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    </div>
+                    <div class="col-12 mb-0">
+                        <p class="mb-1">
+                            <strong><i class="fas fa-stethoscope me-2"></i>Reason:</strong>
+                        </p>
+                        <p class="ms-4">{{ appointment.reason }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completion Check -->
+        {% if appointment.status != 'completed' %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Cannot Add Prescription</strong><br>
+                Prescriptions can only be added after marking an appointment as "Completed". Please go back and mark this appointment as complete first.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <a href="javascript:history.back()" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>Go Back
+            </a>
+        {% else %}
+            <!-- Prescription Form -->
+            <div class="card">
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        <!-- Treatment Notes -->
+                        <div class="mb-4">
+                            <label for="treatment_notes" class="form-label">
+                                <i class="fas fa-notes-medical me-2"></i><strong>Treatment Notes</strong>
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="treatment_notes" 
+                                name="treatment_notes" 
+                                rows="4" 
+                                placeholder="Document the patient's condition, examination findings, and treatment provided..."
+                            >{% if prescription %}{{ prescription.treatment_notes }}{% endif %}</textarea>
+                            <small class="text-muted">Describe the diagnosis, symptoms observed, and treatment administered.</small>
+                        </div>
+
+                        <!-- Medicines/Prescription -->
+                        <div class="mb-4">
+                            <label for="prescription_text" class="form-label">
+                                <i class="fas fa-prescription-bottle-alt me-2"></i><strong>Medicines & Dosage</strong>
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="prescription_text" 
+                                name="prescription_text" 
+                                rows="4" 
+                                placeholder="Example: Aspirin 500mg - 1 tablet twice daily for 7 days&#10;Amoxicillin 250mg - 1 tablet three times daily for 10 days"
+                            >{% if prescription %}{{ prescription.prescription_text }}{% endif %}</textarea>
+                            <small class="text-muted">List all medicines with dosage and frequency instructions.</small>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="mb-4">
+                            <label for="prescription_image" class="form-label">
+                                <i class="fas fa-image me-2"></i><strong>Prescription Document Image</strong>
+                                <span class="optional-tag">(Optional)</span>
+                            </label>
+                            <div class="input-group">
+                                <input 
+                                    type="file" 
+                                    class="form-control" 
+                                    id="prescription_image" 
+                                    name="prescription_image" 
+                                    accept="image/*"
+                                >
+                            </div>
+                            {% if prescription and prescription.image_path %}
+                                <div class="mt-2">
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Current image:
+                                        <a href="/{{ prescription.image_path }}" target="_blank" class="ms-1">View</a>
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i>Save Prescription
+                            </button>
+                            <a href="/doctor/appointments/{{ appointment.doctor_id }}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .optional-tag {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-left: 4px;
+    }
+</style>
+{% endblock %}
